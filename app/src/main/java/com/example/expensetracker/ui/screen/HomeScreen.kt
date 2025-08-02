@@ -1,10 +1,9 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.expensetracker
+package com.example.expensetracker.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,20 +16,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.expensetracker.R
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onAddExpenseClick: () -> Unit = {}, // For navigation to AddExpenseScreen
+    onTabSelected: (Int) -> Unit = {},  // Communicate tab change if needed
+) {
     var selectedItem by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = { HomeTopBar() },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                // TODO: navigate to AddExpense screen
-            }) {
+            FloatingActionButton(onClick = onAddExpenseClick) {
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }
         },
@@ -39,38 +40,46 @@ fun HomeScreen() {
                 NavigationBarItem(
                     icon = { Icon(painterResource(R.drawable.ic_home), contentDescription = "Home") },
                     selected = selectedItem == 0,
-                    onClick = { selectedItem = 0 },
+                    onClick = {
+                        selectedItem = 0
+                        onTabSelected(0)
+                    },
                     label = { Text("Home") }
                 )
                 NavigationBarItem(
                     icon = { Icon(painterResource(R.drawable.ic_transactions), contentDescription = "Transactions") },
                     selected = selectedItem == 1,
-                    onClick = { selectedItem = 1 },
+                    onClick = {
+                        selectedItem = 1
+                        onTabSelected(1)
+                    },
                     label = { Text("Transactions") }
                 )
                 NavigationBarItem(
                     icon = { Icon(painterResource(R.drawable.ic_settings), contentDescription = "Settings") },
                     selected = selectedItem == 2,
-                    onClick = { selectedItem = 2 },
+                    onClick = {
+                        selectedItem = 2
+                        onTabSelected(2)
+                    },
                     label = { Text("Settings") }
                 )
             }
-        },
-        content = { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                GreetingSection()
-                Spacer(modifier = Modifier.height(16.dp))
-                BalanceCard()
-                Spacer(modifier = Modifier.height(16.dp))
-                TransactionList()
-            }
         }
-    )
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            GreetingSection()
+            Spacer(modifier = Modifier.height(16.dp))
+            BalanceCard()
+            Spacer(modifier = Modifier.height(16.dp))
+            TransactionList()
+        }
+    }
 }
 
 @Composable
@@ -78,7 +87,7 @@ fun HomeTopBar() {
     CenterAlignedTopAppBar(
         title = { Text("Expense Tracker") },
         actions = {
-            IconButton(onClick = { /* TODO: Notifications */ }) {
+            IconButton(onClick = { /* TODO: Handle notifications */ }) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_notification),
                     contentDescription = "Notifications"
@@ -116,12 +125,15 @@ fun BalanceCard() {
                 }
                 Icon(
                     painter = painterResource(id = R.drawable.dots_menu),
-                    contentDescription = null,
+                    contentDescription = "Options",
                     tint = Color.White
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Column {
                     Text("Income", color = Color.White)
                     Text("$4,000", fontWeight = FontWeight.Bold, color = Color.White)
@@ -181,28 +193,4 @@ fun TransactionItem(title: String, amount: String, icon: Int, date: String, colo
 @Composable
 fun HomeScreenPreview() {
     HomeScreen()
-}
-
-@Composable
-fun BottomNavigationBar() {
-    NavigationBar {
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { Icon(painterResource(id = R.drawable.ic_home), contentDescription = "Home") },
-            label = { Text("Home") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(painterResource(id = R.drawable.ic_chart), contentDescription = "Chart") },
-            label = { Text("Chart") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(painterResource(id = R.drawable.ic_settings), contentDescription = "Settings") },
-            label = { Text("Settings") }
-        )
-    }
 }
