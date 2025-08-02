@@ -16,12 +16,12 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses ORDER BY date DESC")
     fun getAllExpenses(): Flow<List<Expense>>
 
-    @Query("SELECT * FROM expenses WHERE type = :type ORDER BY date DESC")
+    @Query("SELECT * FROM expenses WHERE category = :type ORDER BY date DESC")
     fun getExpensesByType(type: String): Flow<List<Expense>>
 
-    @Query("SELECT SUM(amount) FROM expenses WHERE type = :type")
+    @Query("SELECT SUM(amount) FROM expenses WHERE category = :type")
     fun getTotalAmountByType(type: String): Flow<Double?>
 
-    @Query("SELECT * FROM expenses WHERE date BETWEEN :startDate AND :endDate")
+    @Query("SELECT * FROM expenses WHERE date BETWEEN :startDate AND :endDate ORDER BY date DESC")
     fun getExpensesBetweenDates(startDate: Long, endDate: Long): Flow<List<Expense>>
 }
