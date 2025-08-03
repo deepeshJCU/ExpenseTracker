@@ -15,23 +15,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.expensetracker.ExpenseTrackerApplication
-import com.example.expensetracker.viewmodel.ExpenseViewModel
-import com.example.expensetracker.ui.common.DatePickerDialog
 import com.example.expensetracker.data.model.Expense
+import com.example.expensetracker.ui.common.DatePickerDialog
+import com.example.expensetracker.viewmodel.ExpenseViewModel
 import com.example.expensetracker.viewmodel.ExpenseViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionScreen(
-) {
+fun TransactionScreen() {
     val context = LocalContext.current
     val application = context.applicationContext as ExpenseTrackerApplication
     val factory = ExpenseViewModelFactory(application.repository)
     val viewModel: ExpenseViewModel = viewModel(factory = factory)
-
 
     var categoryFilter by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf(0L) }
@@ -58,115 +55,153 @@ fun TransactionScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Transactions") }
-            )
+            TopAppBar(title = { Text("Transactions") })
         }
     ) { innerPadding ->
-
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-
-            // --- Filters ---
-            OutlinedTextField(
-                value = categoryFilter,
-                onValueChange = { categoryFilter = it },
-                label = { Text("Filter by Category") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(onClick = { showStartPicker = true }) {
-                    Text("Start: ${formatDate(startDate)}")
-                }
-                Button(onClick = { showEndPicker = true }) {
-                    Text("End: ${formatDate(endDate)}")
-                }
-            }
-
-            if (showStartPicker) {
-                DatePickerDialog(
-                    initialDate = startDate,
-                    onDateSelected = {
-                        startDate = it
-                        showStartPicker = false
-                    },
-                    onDismiss = { showStartPicker = false }
+            item {
+                // Filters
+                OutlinedTextField(
+                    value = categoryFilter,
+                    onValueChange = { categoryFilter = it },
+                    label = { Text("Filter by Category") },
+                    modifier = Modifier.fillMaxWidth()
                 )
-            }
 
-            if (showEndPicker) {
-                DatePickerDialog(
-                    initialDate = endDate,
-                    onDateSelected = {
-                        endDate = it
-                        showEndPicker = false
-                    },
-                    onDismiss = { showEndPicker = false }
-                )
-            }
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // --- Summary Card ---
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Summary", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Total: $${"%.2f".format(totalAmount)}", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    categoryBreakdown.forEach { (category: String, amount: Double) ->
-                        Text("$category: $${"%.2f".format(amount)}", style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(onClick = { showStartPicker = true }) {
+                        Text("Start: ${formatDate(startDate)}")
+                    }
+                    Button(onClick = { showEndPicker = true }) {
+                        Text("End: ${formatDate(endDate)}")
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // --- Expense List ---
-            LazyColumn(modifier = Modifier.fillMaxHeight(0.6f)) {
-                items(items = filteredExpenses) { expense ->
-                    ExpenseItem(
-                        expense = expense,
-                        onEdit = {
-                            Toast.makeText(context, "Edit not yet implemented", Toast.LENGTH_SHORT).show()
+                if (showStartPicker) {
+                    DatePickerDialog(
+                        initialDate = startDate,
+                        onDateSelected = {
+                            startDate = it
+                            showStartPicker = false
                         },
-                        onDelete = {
-                            viewModel.deleteExpense(expense)
-                            Toast.makeText(context, "Expense deleted", Toast.LENGTH_SHORT).show()
-                        }
+                        onDismiss = { showStartPicker = false }
                     )
                 }
+
+                if (showEndPicker) {
+                    DatePickerDialog(
+                        initialDate = endDate,
+                        onDateSelected = {
+                            endDate = it
+                            showEndPicker = false
+                        },
+                        onDismiss = { showEndPicker = false }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Summary Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Summary", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Total: $${"%.2f".format(totalAmount)}", style = MaterialTheme.typography.bodyLarge)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        categoryBreakdown.forEach { (category, amount) ->
+                            Text("$category: $${"%.2f".format(amount)}", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Expense List
+            items(filteredExpenses) { expense ->
+                ExpenseItem(
+                    expense = expense,
+                    onEdit = {
+                        Toast.makeText(context, "Edit not yet implemented", Toast.LENGTH_SHORT).show()
+                    },
+                    onDelete = {
+                        viewModel.deleteExpense(expense)
+                        Toast.makeText(context, "Expense deleted", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
 
-            // --- Category Breakdown Chart ---
-            Text("Category Breakdown (Chart View)", style = MaterialTheme.typography.titleSmall)
-            categoryBreakdown.forEach { (category: String, amount: Double) ->
-                val percent = if (totalAmount > 0) (amount / totalAmount * 100).roundToInt() else 0
-                LinearProgressIndicator(
-                    progress = percent / 100f,
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Category Chart Card
+                var showPieChart by remember { mutableStateOf(false) }
+
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                )
-                Text("$category - $percent%", style = MaterialTheme.typography.bodySmall)
+                        .heightIn(min = 320.dp), // Ensures minimum height for visibility
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Category Breakdown", style = MaterialTheme.typography.titleMedium)
+                            Switch(
+                                checked = showPieChart,
+                                onCheckedChange = { showPieChart = it }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        if (categoryBreakdown.isNotEmpty()) {
+                            val chartModifier = Modifier
+                                .fillMaxWidth()
+                                .height(240.dp)
+
+                            if (showPieChart) {
+                                CategoryPieChart(
+                                    categoryData = categoryBreakdown,
+                                    modifier = chartModifier
+                                )
+                            } else {
+                                CategoryBarChart(
+                                    categoryData = categoryBreakdown,
+                                    modifier = chartModifier
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = "No category data available",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
+
 }
 
 @Composable
