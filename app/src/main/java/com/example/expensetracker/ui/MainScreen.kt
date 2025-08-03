@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.*
 import com.example.expensetracker.ui.screen.AddExpenseScreen
+import com.example.expensetracker.ui.screen.EditExpenseScreen
 import com.example.expensetracker.ui.screen.HomeScreen
 import com.example.expensetracker.ui.screen.SettingsScreen
 import com.example.expensetracker.ui.screen.TransactionScreen
@@ -63,12 +64,18 @@ fun MainScreen() {
             }
 
             composable(Screen.Transactions.route) {
-                TransactionScreen()
+                TransactionScreen(navController)
             }
 
             composable(Screen.Settings.route) {
                 SettingsScreen()
             }
+
+            composable("edit_expense/{expenseId}") { backStackEntry ->
+                val expenseId = backStackEntry.arguments?.getString("expenseId")?.toIntOrNull() ?: return@composable
+                EditExpenseScreen(navController, expenseId)
+            }
+
         }
     }
 }
