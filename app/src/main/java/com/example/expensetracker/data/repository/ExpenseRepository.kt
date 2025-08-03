@@ -14,6 +14,11 @@ class ExpenseRepository(private val expenseDao: ExpenseDao) {
         expenseDao.deleteExpense(expense)
     }
 
+    suspend fun updateExpense(expense: Expense) {
+        expenseDao.updateExpense(expense)
+    }
+
+
     fun getAllExpenses(): Flow<List<Expense>> {
         return expenseDao.getAllExpenses()
     }
