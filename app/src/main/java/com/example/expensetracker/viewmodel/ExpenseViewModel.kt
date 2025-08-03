@@ -32,11 +32,10 @@ class ExpenseViewModel(private val repository: ExpenseRepository) : ViewModel() 
         }
     }
 
-//    fun updateExpense(expense: Expense) {
-//        viewModelScope.launch {
-//            repository.update(expense)
-//        }
-//    }
+    fun updateExpense(expense: Expense) = viewModelScope.launch {
+        repository.updateExpense(expense)
+    }
+
 
 
     // Returns filtered expenses directly as Flow
