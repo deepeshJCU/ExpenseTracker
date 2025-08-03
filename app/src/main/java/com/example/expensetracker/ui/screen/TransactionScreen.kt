@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.expensetracker.ExpenseTrackerApplication
 import com.example.expensetracker.data.model.Expense
 import com.example.expensetracker.ui.common.DatePickerDialog
@@ -24,7 +25,7 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionScreen() {
+fun TransactionScreen(navController: NavController) {
     val context = LocalContext.current
     val application = context.applicationContext as ExpenseTrackerApplication
     val factory = ExpenseViewModelFactory(application.repository)
@@ -135,7 +136,7 @@ fun TransactionScreen() {
                 ExpenseItem(
                     expense = expense,
                     onEdit = {
-                        Toast.makeText(context, "Edit not yet implemented", Toast.LENGTH_SHORT).show()
+                        navController.navigate("edit_expense/${it.id}")
                     },
                     onDelete = {
                         viewModel.deleteExpense(expense)
