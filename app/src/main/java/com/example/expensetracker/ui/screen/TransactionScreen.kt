@@ -29,7 +29,7 @@ import java.util.*
 fun TransactionScreen(navController: NavController) {
     val context = LocalContext.current
     val application = context.applicationContext as ExpenseTrackerApplication
-    val factory = ExpenseViewModelFactory(application.repository)
+    val factory = ExpenseViewModelFactory(application.expenseRepository)
     val viewModel: ExpenseViewModel = viewModel(factory = factory)
 
     var categoryFilter by remember { mutableStateOf("") }
