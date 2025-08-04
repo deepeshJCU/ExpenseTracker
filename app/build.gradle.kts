@@ -80,6 +80,9 @@ dependencies {
     //Theme mode
     implementation("androidx.appcompat:appcompat:1.6.1")
 
+    //image uploader
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
     // Charts
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("com.google.code.gson:gson:2.10.1")

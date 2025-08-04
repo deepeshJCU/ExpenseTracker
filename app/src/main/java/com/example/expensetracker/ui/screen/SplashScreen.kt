@@ -7,19 +7,33 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.expensetracker.util.SharedPrefsUtil
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavController) {
+    val context = LocalContext.current
+    val prefs = remember { SharedPrefsUtil(context) }
+
+    // Launch effect to check login status after delay
     LaunchedEffect(Unit) {
         delay(2000)
-        navController.navigate("login") {
-            popUpTo("splash") { inclusive = true }
+        val isLoggedIn = prefs.isUserLoggedIn() // Corrected method call
+        if (isLoggedIn) {
+            navController.navigate("home") {
+                popUpTo("splash") { inclusive = true }
+            }
+        } else {
+            navController.navigate("login") {
+                popUpTo("splash") { inclusive = true }
+            }
         }
     }
 
+    // Animation for splash text
     val alphaAnim = rememberInfiniteTransition()
     val alpha by alphaAnim.animateFloat(
         initialValue = 0.3f,
@@ -31,8 +45,7 @@ fun SplashScreen(navController: NavController) {
     )
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(

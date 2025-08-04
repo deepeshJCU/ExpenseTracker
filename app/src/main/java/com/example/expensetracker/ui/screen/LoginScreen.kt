@@ -9,12 +9,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.expensetracker.R
 import com.example.expensetracker.ui.Screen
 import com.example.expensetracker.viewmodel.AuthState
 import com.example.expensetracker.viewmodel.AuthViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
@@ -24,10 +26,18 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
     val authState by viewModel.authState.collectAsState()
 
     LaunchedEffect(authState) {
-        if (authState is AuthState.Success) {
-            navController.navigate(Screen.Home.route) {
-                popUpTo("login") { inclusive = true }
+        when (authState) {
+            is AuthState.Success -> {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo("login") { inclusive = true }
+                }
+                viewModel.resetState()
             }
+            is AuthState.Error -> {
+                delay(2000)
+                viewModel.resetState()
+            }
+            else -> {}
         }
     }
 
@@ -52,7 +62,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_logo), // Replace with actual logo
+                painter = painterResource(id = R.drawable.ic_logo),
                 contentDescription = "App Logo",
                 modifier = Modifier.size(100.dp)
             )
@@ -75,27 +85,39 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                 onValueChange = { password = it },
                 label = { Text("Password") },
                 singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { viewModel.login(username, password) },
+                onClick = {
+                    if (username.isNotBlank() && password.isNotBlank()) {
+                        viewModel.login(username, password)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Login")
             }
+
 
             TextButton(onClick = { navController.navigate("signup") }) {
                 Text("Don't have an account? Sign up")
             }
 
             if (authState is AuthState.Error) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = (authState as AuthState.Error).message,
                     color = MaterialTheme.colorScheme.error
                 )
+            }
+
+            if (authState is AuthState.Loading) {
+                Spacer(modifier = Modifier.height(16.dp))
+                CircularProgressIndicator()
             }
         }
     }
