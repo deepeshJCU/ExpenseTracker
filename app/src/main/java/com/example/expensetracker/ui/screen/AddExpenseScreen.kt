@@ -13,8 +13,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.expensetracker.data.db.AppDatabase
 import com.example.expensetracker.data.model.Expense
 import com.example.expensetracker.data.repository.ExpenseRepository
+import com.example.expensetracker.util.NotificationPrefs
+import com.example.expensetracker.util.sendTransactionNotification
 import com.example.expensetracker.viewmodel.ExpenseViewModel
 import com.example.expensetracker.viewmodel.ExpenseViewModelFactory
+
+private const val DISPLAY_EXPENSE = "Expense"
+private const val DISPLAY_INCOME = "Income"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,6 +27,9 @@ fun AddExpenseScreen(
     onExpenseSaved: () -> Unit = {}
 ) {
     val context = LocalContext.current
+
+    val prefs = remember { com.example.expensetracker.util.SharedPrefsUtil(context) }
+    val notificationPrefs = remember { NotificationPrefs(context) }
 
     val viewModel: ExpenseViewModel = viewModel(
         factory = ExpenseViewModelFactory(
@@ -35,8 +43,8 @@ fun AddExpenseScreen(
     var amount by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf("Expense") }
-    val typeOptions = listOf("Expense", "Income")
+    var type by remember { mutableStateOf(DISPLAY_EXPENSE) }
+    val typeOptions = listOf(DISPLAY_EXPENSE, DISPLAY_INCOME)
     var expanded by remember { mutableStateOf(false) }
 
     Column(
@@ -115,26 +123,49 @@ fun AddExpenseScreen(
         Button(
             onClick = {
                 if (title.isNotBlank() && amount.isNotBlank() && category.isNotBlank()) {
-                    viewModel.addExpense(
+                    val parsedAmount = amount.toDoubleOrNull()
+                    if (parsedAmount == null || parsedAmount <= 0.0) {
+                        Toast.makeText(context, "Enter a valid amount", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    val lowercaseType = type.lowercase()
+
+                    viewModel.addExpenseWithLimitCheck(
+                        context,
                         Expense(
                             title = title.trim(),
-                            amount = amount.toDoubleOrNull() ?: 0.0,
+                            amount = parsedAmount,
                             category = category.trim(),
                             description = description.trim().takeIf { it.isNotBlank() },
-                            type = type,
+                            type = lowercaseType,
                             date = System.currentTimeMillis()
-                        )
+                        ),
+                        prefs.getLimit()
                     )
+
+                    // Save to shared notification store
+                    notificationPrefs.addNotification("You added: $title - ₦$amount")
+
                     Toast.makeText(context, "Expense saved", Toast.LENGTH_SHORT).show()
+
+                    // Trigger system notification
+                    sendTransactionNotification(
+                        context = context,
+                        title = "Transaction Added",
+                        message = "You added: $title - ₦$amount"
+                    )
+
                     onExpenseSaved()
+
                     // Reset form
                     title = ""
                     amount = ""
                     category = ""
                     description = ""
-                    type = "Expense"
+                    type = DISPLAY_EXPENSE
                 } else {
-                    Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Please fill all required fields", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier.fillMaxWidth()
