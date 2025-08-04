@@ -3,40 +3,49 @@ package com.example.expensetracker.data.repository
 import com.example.expensetracker.data.dao.ExpenseDao
 import com.example.expensetracker.data.model.Expense
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class ExpenseRepository(private val expenseDao: ExpenseDao) {
+class ExpenseRepository(
+    private val expenseDao: ExpenseDao
+) {
 
-    suspend fun insert(expense: Expense) {
+    suspend fun insertExpense(expense: Expense) {
         expenseDao.insertExpense(expense)
     }
 
-    suspend fun delete(expense: Expense) {
+    suspend fun deleteExpense(expense: Expense) {
         expenseDao.deleteExpense(expense)
     }
 
     suspend fun updateExpense(expense: Expense) {
         expenseDao.updateExpense(expense)
     }
+    suspend fun addExpense(expense: Expense) = expenseDao.insertExpense(expense)
+
+    fun getAllExpenses() = expenseDao.getAllExpenses()
+
+    fun getTotalIncome(): Flow<Double> = expenseDao.getTotalIncome().map { it ?: 0.0 }
+
+    fun getTotalExpense(): Flow<Double> = expenseDao.getTotalExpense().map { it ?: 0.0 }
 
 
-    fun getAllExpenses(): Flow<List<Expense>> {
-        return expenseDao.getAllExpenses()
+//    fun getAllExpenses(): Flow<List<Expense>> =
+//        expenseDao.getAllExpenses()
+
+    fun getExpensesByType(type: String): Flow<List<Expense>> =
+        expenseDao.getExpensesByType(type)
+
+    fun getTotalAmountByType(type: String): Flow<Double> =
+        expenseDao.getTotalAmountByType(type).map { it ?: 0.0 }
+
+    suspend fun getTotalAmountByTypeNow(type: String): Double {
+        return expenseDao.getTotalAmountByTypeNow(type) ?: 0.0
     }
 
-    fun getExpensesByType(type: String): Flow<List<Expense>> {
-        return expenseDao.getExpensesByType(type)
-    }
 
-    // Updated return type to match DAO (nullable Double)
-    fun getTotalAmountByType(type: String): Flow<Double?> {
-        return expenseDao.getTotalAmountByType(type)
-    }
+    fun getExpensesBetween(start: Long, end: Long): Flow<List<Expense>> =
+        expenseDao.getExpensesBetweenDates(start, end)
 
-    fun getExpensesBetween(start: Long, end: Long): Flow<List<Expense>> {
-        return expenseDao.getExpensesBetweenDates(start, end)
-    }
-
-    fun getFilteredExpenses(category: String?, startDate: Long, endDate: Long): Flow<List<Expense>> {
-        return expenseDao.getFilteredExpenses(category, startDate, endDate)
-    }
+    fun getFilteredExpenses(category: String?, startDate: Long, endDate: Long): Flow<List<Expense>> =
+        expenseDao.getFilteredExpenses(category, startDate, endDate)
 }

@@ -16,9 +16,14 @@ interface ExpenseDao {
     @Update
     suspend fun updateExpense(expense: Expense)
 
-
     @Query("SELECT * FROM expenses ORDER BY date DESC")
     fun getAllExpenses(): Flow<List<Expense>>
+
+    @Query("SELECT SUM(amount) FROM expenses WHERE type = 'income'")
+    fun getTotalIncome(): Flow<Double?>
+
+    @Query("SELECT SUM(amount) FROM expenses WHERE type = 'expense'")
+    fun getTotalExpense(): Flow<Double?>
 
     @Query("SELECT * FROM expenses WHERE type = :type ORDER BY date DESC")
     fun getExpensesByType(type: String): Flow<List<Expense>>
@@ -29,6 +34,19 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE date BETWEEN :startDate AND :endDate ORDER BY date DESC")
     fun getExpensesBetweenDates(startDate: Long, endDate: Long): Flow<List<Expense>>
 
-    @Query("SELECT * FROM expenses WHERE (:category IS NULL OR category = :category) AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
-    fun getFilteredExpenses(category: String?, startDate: Long, endDate: Long): Flow<List<Expense>>
+    @Query("SELECT SUM(amount) FROM expenses WHERE type = :type")
+    suspend fun getTotalAmountByTypeNow(type: String): Double?
+
+
+    @Query("""
+        SELECT * FROM expenses 
+        WHERE (:category IS NULL OR category = :category) 
+        AND date BETWEEN :startDate AND :endDate 
+        ORDER BY date DESC
+    """)
+    fun getFilteredExpenses(
+        category: String?,
+        startDate: Long,
+        endDate: Long
+    ): Flow<List<Expense>>
 }
